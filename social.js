@@ -20,10 +20,12 @@ const nexmo = new Nexmo({
   applicationId: NEXMO_APPLICATION_ID,
   privateKey: NEXMO_APPLICATION_PRIVATE_KEY_PATH
 });
-var openWindow = false
-var teamMeet = false
-var yCount = 0
-var rInt = 1
+let openWindow = false;
+let teamMeet = false;
+let yCount = 0;
+let rInt = 1;
+
+let participants = ['17322075515', '14703040264'];
 
 //App will use body-parser on all incoming requests
 app.use(bodyParser.json());
@@ -32,16 +34,14 @@ app.use(bodyParser.urlencoded({ extended: true }))
 //Make app listen on desired port
 app.listen(3000);
 
-/*
 //Adding HTTPS
 https.createServer({
   key: fs.readFileSync('server.key'),
   cert: fs.readFileSync('server.cert')
 }, app)
 .listen(3000, function () {
-  console.log('Example app listening on port 3000! Go to https://localhost:3000/')
+  console.log('Example app listening on port 3000! Go to https://dhtestbed.net:3000/socialapp/')
 })
-*/
 
 
 //Connect to DB and use configured DB and Collection from .env file
@@ -84,21 +84,23 @@ function openRoom(){
   sendRoomLink();
 }
 
-//Process SMS Replies
+///Process SMS Replies
 function onSMS(req, res) {
-console.log("Request:", req.body);
-let key = req.body.keyword
-    if (key === "YES") {
-      yCount = yCount ++;
-      } 
-    else if (yCount >= 1 && getWindow()) {
-  	openRoom();
-  	yCount = 0;
-	} 
-      
+  let key = req.body.keyword
+
+  if (key === "YES") {
+    yCount++;
+  }
+
+  if (yCount >= 1 && getWindow()) {
+    openRoom();
+    yCount = 0;
+  }
   
-res.status(200).end();
-}
+  
+  res.status(200).end();
+  }
+  
 
 //Timer needs work
 
@@ -120,9 +122,8 @@ function startTimer() {
 */
 
 // New Timer
-
 function newTimer() {
-  let msTime = rInt * 60000
+  let msTime = rInt * 600000
 
   function startTimeFunc(){
     toggleWindow(); //close window
@@ -134,70 +135,45 @@ setTimeout(startTimeFunc, msTime);
 
 }
 
-
-
-
 //Create Window
-
 function createWindow(){
- toggleWindow(); // sets window to open (true)
- sendSMS(); // sends messages
- //startTimer();
- newTimer();
-};
+  toggleWindow(); // sets window to open (true)
+  sendSMS(participants, "Do you want to meet?"); // sends messages
+  //startTimer();
+  newTimer();
+ };
+ 
 
 
 //Send SMS Messages
-
-function sendSMS(){
-let text = "Do you want to meet up?";
-
-
-nexmo.message.sendSms(NEXMO_NUMBER, 17322075515, text, {
-  type: "unicode"
-}, (err, responseData) => {
-  if (err) {
-    console.log(err);
-  } else {
-    if (responseData.messages[0]['status'] === "0") {
-      console.log("Message sent successfully.");
-    } else {
-      console.log(`Message failed with error: ${responseData.messages[0]['error-text']}`);
-    }
-  }
-});
-};
+function sendSMS(participants, message){
+  let text = message;
+  
+  participants.forEach(participant =>{
+      nexmo.message.sendSms(NEXMO_NUMBER, participant, text, {
+        type: "unicode"
+      }, (err, responseData) => {
+        if (err) {
+          console.log(err);
+        } else {
+          if (responseData.messages[0]['status'] === "0") {
+            console.log("Message sent successfully.");
+          } else {
+            console.log(`Message failed with error: ${responseData.messages[0]['error-text']}`);
+          }
+        }
+      });
+    });
+  };
 
 //Send Room Link 
-
 function sendRoomLink(){
-let text = "ROOM LINK";
-
-
-nexmo.message.sendSms(NEXMO_NUMBER, 17322075515, text, {
-  type: "unicode"
-}, (err, responseData) => {
-  if (err) {
-    console.log(err);
-  } else {
-    if (responseData.messages[0]['status'] === "0") {
-      console.log("Message sent successfully.");
-    } else {
-      console.log(`Message failed with error: ${responseData.messages[0]['error-text']}`);
-    }
-  }
-});
+  let text = "https://dhtestbed.net:3000/socialapp/";
+  sendSMS(participants, text);
 };
-
-
 
 //Webhook to receive inbound messages
 app.post('/onehackmessages', onSMS);
-
-/*
-app.post('/onehackmessages', function(request, response){
- console.log("request", request.body);
-});*/
 
 createWindow();
 
