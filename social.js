@@ -86,12 +86,12 @@ function openRoom(){
 
 //Process SMS Replies
 function onSMS(req, res) {
-console.log(req.body);
+console.log("Request:", req.body);
 let key = req.body.keyword
     if (key === "YES") {
       yCount = yCount ++;
       } 
-    else if (tCount >= 1 && getWindow()) {
+    else if (yCount >= 1 && getWindow()) {
   	openRoom();
   	yCount = 0;
 	} 
@@ -193,6 +193,11 @@ nexmo.message.sendSms(NEXMO_NUMBER, 17322075515, text, {
 
 //Webhook to receive inbound messages
 app.post('/onehackmessages', onSMS);
+
+/*
+app.post('/onehackmessages', function(request, response){
+ console.log("request", request.body);
+});*/
 
 createWindow();
 
