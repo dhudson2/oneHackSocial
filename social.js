@@ -23,15 +23,16 @@ const nexmo = new Nexmo({
 var openWindow = false
 var teamMeet = false
 var yCount = 0
-var rInt = 4
+var rInt = 1
 
 //App will use body-parser on all incoming requests
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }))
 
 //Make app listen on desired port
-//app.listen(3000);
+app.listen(3000);
 
+/*
 //Adding HTTPS
 https.createServer({
   key: fs.readFileSync('server.key'),
@@ -40,7 +41,7 @@ https.createServer({
 .listen(3000, function () {
   console.log('Example app listening on port 3000! Go to https://localhost:3000/')
 })
-
+*/
 
 
 //Connect to DB and use configured DB and Collection from .env file
@@ -86,26 +87,22 @@ function openRoom(){
 //Process SMS Replies
 function onSMS(req, res) {
 console.log(req.body);
-let tCount = yCount
 let key = req.body.keyword
-if (tCount >= 1 && getWindow()) {
-  openRoom();
-  yCount = 0;
-
-} else {
-
     if (key === "YES") {
-      tCount = tCount ++;
-      }
-    
-      else {
-        return
-      }
-  }
+      yCount = yCount ++;
+      } 
+    else if (tCount >= 1 && getWindow()) {
+  	openRoom();
+  	yCount = 0;
+	} 
+      
+  
+res.status(200).end();
 }
 
-//Timer
+//Timer needs work
 
+/*
 function startTimer() {
   var rTime = new Date();
   rTime.setMinutes(rTime.getMinutes() + rInt); // timestamp
@@ -120,6 +117,24 @@ function startTimer() {
 
  setInterval(myClock, 1000);
 }
+*/
+
+// New Timer
+
+function newTimer() {
+  let msTime = rInt * 60000
+
+  function startTimeFunc(){
+    toggleWindow(); //close window
+    console.log("Window Closed");
+
+  }
+
+setTimeout(startTimeFunc, msTime);
+
+}
+
+
 
 
 //Create Window
@@ -127,7 +142,8 @@ function startTimer() {
 function createWindow(){
  toggleWindow(); // sets window to open (true)
  sendSMS(); // sends messages
- startTimer();
+ //startTimer();
+ newTimer();
 };
 
 
